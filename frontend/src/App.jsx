@@ -7,6 +7,7 @@ import { useEffect } from "react"
 import AgoraRTC from "agora-rtc-sdk-ng"
 import { APPID } from "../appid.js"
 
+
 const server = "http://localhost:5000"
 const socket = io(server,{
   transports : ["websocket"],
@@ -30,6 +31,7 @@ function App() {
   const userData = useRef()
 
   const [mikeMuted, setMikeMuted] = useState(true)
+  const [cameraMuted, setCameraMuted] = useState(true)
 
   const token = null;
   const rtcUid = uuid()
@@ -39,6 +41,12 @@ function App() {
     localAudioTrack: null,
     remoteAudioTracks: {}
   }
+
+  let videoTracks = {
+    localVideoTrack: null,
+    remoteVideoTracks: {}
+  }
+
   
 
   let rtcClient 
@@ -46,16 +54,34 @@ function App() {
   let initRtc = async () => {
 
     rtcClient = AgoraRTC.createClient({mode:'rtc', codec:'vp8'})
+    const localVideoTrack = await AgoraRTC.createCameraVideoTrack()
+    const newTrack = localVideoTrack.getMediaStreamTrack();
+    // const newTrack = await navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(mediaStream => mediaStream.getVideoTracks()[0]);
+    console.log(newTrack, 'newTrack ----------------------------------------------------------------------------------------------');
 
     rtcClient.on("user-published", handleUserPublished)
 
     await rtcClient.join(appid,roomID,token,rtcUid)
 
     audioTracks.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack()
+    videoTracks.localVideoTrack = await AgoraRTC.createCameraVideoTrack()
+
     audioTracks.localAudioTrack.setMuted(mikeMuted)
-    rtcClient.publish(audioTracks.localAudioTrack)
+    // videoTracks.localVideoTrack.isPlaying(cameraMuted)
+
+    const player = `<div class='video-frames-container' id='user-container-${appid}'>
+    <div id='user-${appid}' class='video-frames'>
+    </div>
+    </div>`
+
+    document.getElementById('video-Player')?.insertAdjacentHTML('beforeend',player)
+
+    await videoTracks.localVideoTrack.play(`user-${appid}`)
+
+    rtcClient.publish([audioTracks.localAudioTrack, videoTracks.localVideoTrack])
 
   }
+
 
   let handleUserPublished = async (user, mediaType) => {
     await  rtcClient.subscribe(user, mediaType);
@@ -66,12 +92,21 @@ function App() {
     }
   }
 
+  // useEffect(() => {
+  //   console.log(videoTracks, '--------------------------------------------------- videoTracks');
+  // }, [videoTracks])
+
   let leaveRoom = async () => {
     audioTracks.localAudioTrack.stop()
     audioTracks.localAudioTrack.close()
     rtcClient.unpublish()
     rtcClient.leave()
+
+    videoTracks.localVideoTrack.stop()
+    videoTracks.localVideoTrack.close()
   }
+;
+ 
   
   useEffect(() => {
     socket.on("userIsJoined", (data) => {
@@ -115,7 +150,7 @@ function App() {
     createRoutesFromElements(
       <>
       <Route  path="/" element={<Forms user={user} uuid={uuid} setUser={setUser} socket={socket} userData={userData} />}/>
-      <Route path="/:roomId" element={<RoomPage user={user} socket={socket} users={users} audioTracks={audioTracks} rtcClient={rtcClient} mikeMuted={mikeMuted} setMikeMuted={setMikeMuted} leaveRoom={leaveRoom}/>}/>
+      <Route path="/:roomId" element={<RoomPage Page user={user} socket={socket} users={users} audioTracks={audioTracks} rtcClient={rtcClient} mikeMuted={mikeMuted} setMikeMuted={setMikeMuted} leaveRoom={leaveRoom}/>}/>
       </>
     )
   )

@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import rough from "roughjs/bundled/rough.esm";
 
 const generator = rough.generator();
+const fileNum = Math.random() * 10000
 
 export const Canvas = ({
   color,
@@ -14,13 +15,13 @@ export const Canvas = ({
   brushWidth,
   roughness,
   filled,
+  fillType
 }) => {
   const [img, setImg] = useState(null);
   const ctx = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedShapes, setSelectedShapes] = useState(null);
 
-  const fileNum = Math.random() * 10000
 
   
 
@@ -84,28 +85,6 @@ export const Canvas = ({
           rough: roughness,
         },
       ]);
-    } else if (tool === "text") {
-      const roughCanvas = rough.canvas(canvasRef.current)
-      const inputText = document.getElementById('inputText')
-      inputText.style.left = offsetX + "px";
-      inputText.style.top = offsetY + "px";
-      inputText.style.display = "block";
-      inputText.focus();
-      const text = inputText.value
-      inputText.value = ''
-      setElements((prevElements) => [
-        ...prevElements,
-        {
-          x1: offsetX,
-          y1: offsetY,
-          text:text,
-          fontSize:'24px',
-          stroke: color,
-          element: tool,
-          width: brushWidth,
-          rough: roughness,
-        },
-      ]);
     } else {
       setElements((prevElements) => [
         ...prevElements,
@@ -116,6 +95,7 @@ export const Canvas = ({
           element: tool,
           width: brushWidth,
           rough: roughness,
+          filltype:fillType,
         },
       ]);
     }
@@ -206,6 +186,7 @@ export const Canvas = ({
     }
     elements.forEach((ele, i) => {
       if (ele.element === "rect") {
+        console.log(ele.filltype, ele.stroke, ele);
         roughCanvas.draw(
           generator.rectangle(
             ele.x1,
@@ -216,6 +197,9 @@ export const Canvas = ({
               stroke: ele.stroke,
               roughness: ele.rough,
               strokeWidth: ele.width,
+              fill: ele.stroke,
+              fillStyle: ele.filltype,
+              hachureGap: 30,
             }
           )
         );
@@ -276,9 +260,6 @@ export const Canvas = ({
           ],
           { stroke: ele.stroke, strokeWidth: ele.width, roughness: 0 }
         );
-      } else if (ele.element === "text") {
-        ctx.current.font = ele.fontSize
-        ctx.current.strokeText(ele.text,ele.x1,ele.y1)
       }
     });
 
@@ -363,6 +344,7 @@ export const Canvas = ({
                 element: ele.element,
                 width: ele.width,
                 rough: ele.rough,
+                filltype:ele.filltype,
               }
             : ele
         )
@@ -415,6 +397,7 @@ export const Canvas = ({
                 element: ele.element,
                 width: ele.width,
                 rough: ele.rough,
+                filltype:ele.filltype,
               }
             : ele
         )

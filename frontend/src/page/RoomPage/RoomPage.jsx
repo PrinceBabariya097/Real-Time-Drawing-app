@@ -1,29 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { Canvas } from "../../components/Whiteboard/Canvas.jsx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUser, faMessage, faUpload, faArrowRightFromBracket, faMicrophoneSlash, faDownload } from "@fortawesome/free-solid-svg-icons";
+import {
+  faUser,
+  faMessage,
+  faUpload,
+  faArrowRightFromBracket,
+  faMicrophoneSlash,
+  faDownload,
+} from "@fortawesome/free-solid-svg-icons";
 import { useRef } from "react";
 import { Chat } from "../../components/ChatBar/Chat.jsx";
 import User from "../../components/UserBar/User.jsx";
 import Usernav from "../../components/UserNavidationBar/Usernav.jsx";
 import { useNavigate } from "react-router-dom";
 import { downloadCanvasAsImage } from "../../components/Whiteboard/Canvas.jsx";
+import UpperNavBar from "../../components/UpperNavBar/UpperNavBar.jsx";
 
-function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setMikeMuted, leaveRoom }) {
+function RoomPage({
+  user,
+  socket,
+  users,
+  audioTracks,
+  rtcClient,
+  mikeMuted,
+  setMikeMuted,
+  leaveRoom,
+}) {
   const [tool, setTool] = useState("pencil");
   const [chooseColor, setChooseColor] = useState("#ffffff");
   const [showUser, setShowUser] = useState(false);
   const [isMessage, setIsMessage] = useState(false);
-  const [filled, setFilled] = useState(false)
+  const [filled, setFilled] = useState(false);
   const [elements, setElements] = useState([]);
   const [brushWidth, setBrushWidth] = useState(1);
   const [roughness, setRoughness] = useState(1);
   const [history, setHistory] = useState([]);
   const [selectedFile, setSelectedFile] = useState([]);
+  const [fillType, setFillType] = useState("none");
 
   const canvasRef = useRef(null);
   const ctx = useRef(null);
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const clearCanvas = () => {
     ctx.current = canvasRef.current.getContext("2d");
@@ -31,7 +49,7 @@ function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setM
     setElements([]);
   };
 
-  console.log(mikeMuted);
+  // console.log(mikeMuted);
 
   const redo = () => {
     setElements((prevElements) => [
@@ -42,28 +60,26 @@ function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setM
   };
 
   const undo = () => {
-    setHistory(prev => [...prev,elements[elements.length - 1]])
-    setElements(prev => prev.slice(0, prev.length-1))
-  }
+    setHistory((prev) => [...prev, elements[elements.length - 1]]);
+    setElements((prev) => prev.slice(0, prev.length - 1));
+  };
 
   const handleDisConnect = () => {
-    navigate('/')
-    socket.disconnect(user)
-    leaveRoom()
-  }
+    navigate("/");
+    socket.disconnect(user);
+    leaveRoom();
+  };
 
   const handelfiles = (e) => {
-    const file = e.target.files[0]
-    console.log(file)
+    const file = e.target.files[0];
+    console.log(file);
     console.log(URL.createObjectURL(file));
-    setSelectedFile(prev => [...prev,file])
-  }
-
-  
+    setSelectedFile((prev) => [...prev, file]);
+  };
 
   return (
     <div className="bg-[#00203FFF]">
-      <div className="w-full flex justify-center top-0 absolute">
+      <div className="w-full flex justify-center bottom-6 absolute">
         <nav className="bg-[#ADEFD1FF] rounded-xl p-3 w-fit h-fit flex z-[2]">
           <div className="mx-3">
             <FontAwesomeIcon
@@ -84,12 +100,16 @@ function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setM
               color="red"
             />
           </div>
-          <div className={`${!mikeMuted ? 'bg-red-600  rounded-full' : ''} bg-[{}] message ml-7 mr-3`}>
+          <div
+            className={`${
+              mikeMuted ? "bg-red-600  rounded-full" : ""
+            } bg-[{}] message ml-7 mr-3 `}
+          >
             <FontAwesomeIcon
               icon={faMicrophoneSlash}
-              size="2x"
+              size="lg"
               onClick={() => setMikeMuted(!mikeMuted)}
-
+              className="p-2"
             />
           </div>
           <div className="message ml-7 mr-3">
@@ -109,58 +129,16 @@ function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setM
           </div>
         </nav>
       </div>
-      {selectedFile && ( selectedFile.map((file,index) => (
-        <div key={index * 999} className="absolute z-[-1] opacity-[0.5]">
-          <img src={URL.createObjectURL(file)} alt="image" />
-        </div>
-      )))}
       {user?.presenter && (
-        <div className=" w-full absolute top-3 flex justify-center">
-          <div className="flex w-fit bg-[#A2A2A1FF] p-2 rounded-xl">
-            <div className="flex flex-col text-center">
-              Brush Width
-              <input
-                type="range"
-                min={1}
-                max={5}
-                value={brushWidth}
-                onChange={(e) => setBrushWidth(e.target.value)}
-                list="markers"
-              />
-              <datalist id="markers">
-                <option value="1"></option>
-                <option value="2"></option>
-                <option value="3"></option>
-                <option value="4"></option>
-                <option value="5"></option>
-              </datalist>
-            </div>
-            <div className="flex flex-col text-center mx-4">
-              Brush Roughness
-              <input
-                type="range"
-                min={0}
-                max={3}
-                step={0.5}
-                value={roughness}
-                onChange={(e) => setRoughness(e.target.value)}
-                list="markers2"
-              />
-              <datalist id="markers2">
-                <option value="0"></option>
-                <option value="0.5"></option>
-                <option value="1"></option>
-                <option value="1.5"></option>
-                <option value="2"></option>
-                <option value="2.5"></option>
-                <option value="3"></option>
-              </datalist>
-            </div>
-            {/* <div>
-              <FontAwesomeIcon icon={faDownload} onClick={downloadCanvasAsImage}/>
-            </div> */}
-          </div>
-        </div>
+        <UpperNavBar
+          brushWidth={brushWidth}
+          setBrushWidth={setBrushWidth}
+          roughness={roughness}
+          setRoughness={setRoughness}
+          downloadCanvasAsImage={downloadCanvasAsImage}
+          fillType={fillType}
+          setFillType={setFillType}
+        />
       )}
       {user?.presenter && (
         <Usernav
@@ -190,27 +168,38 @@ function RoomPage({ user, socket, users, audioTracks, rtcClient, mikeMuted, setM
           roughness={roughness}
           selectedFile={selectedFile}
           filled={filled}
+          fillType={fillType}
         />
       </div>
-      
-      
-      {showUser && (
-        <div className="absolute right-2 top-0">
-        <User
-          users={users}
-          user={user}
-          showUser={showUser}
-          setShowUser={setShowUser}
-        />
+
+      {showUser ? (
+        <div className="visible absolute right-2 top-0">
+          <User
+            users={users}
+            user={user}
+            showUser={showUser}
+            setShowUser={setShowUser}
+          />
+        </div>
+      ): (
+        <div className="invisible absolute right-2 top-0">
+          <User
+            users={users}
+            user={user}
+            showUser={showUser}
+            setShowUser={setShowUser}
+          />
         </div>
       )}
-       {isMessage && <div className="absolute right-2 top-0 [transition:width_0.5s]">
-        <Chat
-          isMessage={isMessage}
-          setIsMessage={setIsMessage}
-          socket={socket}
-        />
-        </div>}
+      {isMessage && (
+        <div className="absolute right-2 top-0 [transition:width_0.5s]">
+          <Chat
+            isMessage={isMessage}
+            setIsMessage={setIsMessage}
+            socket={socket}
+          />
+        </div>
+      )}
     </div>
   );
 }
