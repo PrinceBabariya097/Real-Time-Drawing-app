@@ -14,16 +14,12 @@ export const Canvas = ({
   setElements,
   brushWidth,
   roughness,
-  filled,
   fillType
 }) => {
   const [img, setImg] = useState(null);
   const ctx = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [selectedShapes, setSelectedShapes] = useState(null);
-
-
-  
 
   useEffect(() => {
     socket.on("whiteboardDataResponce", (data) => {
@@ -51,7 +47,7 @@ export const Canvas = ({
   }, []);
 
   useEffect(() => {
-    
+
   })
 
   const handleMouseDown = (e) => {
@@ -95,7 +91,7 @@ export const Canvas = ({
           element: tool,
           width: brushWidth,
           rough: roughness,
-          filltype:fillType,
+          filltype: fillType,
         },
       ]);
     }
@@ -143,7 +139,7 @@ export const Canvas = ({
           const centerY = shape.y1 + shape.oheight / 2;
           if (
             (mouseX - centerX) ** 2 / (shape.owidth / 2) ** 2 +
-              (mouseY - centerY) ** 2 / (shape.oheight / 2) ** 2 <=
+            (mouseY - centerY) ** 2 / (shape.oheight / 2) ** 2 <=
             1
           ) {
             setSelectedShapes({
@@ -186,23 +182,15 @@ export const Canvas = ({
     }
     elements.forEach((ele, i) => {
       if (ele.element === "rect") {
-        console.log(ele.filltype, ele.stroke, ele);
-        roughCanvas.draw(
-          generator.rectangle(
-            ele.x1,
-            ele.y1,
-            ele.x2 - ele.x1,
-            ele.y2 - ele.y1,
-            {
-              stroke: ele.stroke,
-              roughness: ele.rough,
-              strokeWidth: ele.width,
-              fill: ele.stroke,
-              fillStyle: ele.filltype,
-              hachureGap: 30,
-            }
-          )
-        );
+
+        ctx.current.strokeStyle = ele.stroke
+        ctx.current.fillStyle = ele.stroke
+        console.log(ele.filltype, "filltype");
+        if (ele.filltype === "none") {
+          ctx.current.strokeRect(ele.x1, ele.y1, ele.x2 - ele.x1, ele.y2 - ele.y1,)
+        } else {
+          ctx.current.fillRect(ele.x1, ele.y1, ele.x2 - ele.x1, ele.y2 - ele.y1,)
+        }
       } else if (ele.element === "line") {
         roughCanvas.draw(
           generator.line(ele.x1, ele.y1, ele.x2, ele.y2, {
@@ -219,22 +207,23 @@ export const Canvas = ({
         });
         console.log(ele);
       } else if (ele.element === "oval") {
-        const width = Math.abs(ele.x2 - ele.x1);
-        const height = Math.abs(ele.y2 - ele.y1);
-        const minX = Math.min(ele.x1, ele.x2);
-        const minY = Math.min(ele.y1, ele.y2);
 
-        roughCanvas.ellipse(
-          minX + width / 2,
-          minY + height / 2,
-          width,
-          height,
-          {
-            stroke: ele.stroke,
-            roughness: ele.rough,
-            strokeWidth: ele.width,
-          }
-        );
+        const centerX = (ele.x1 + ele.x2) / 2;
+      const centerY = (ele.y1 + ele.y2) / 2;
+      const radiusX = Math.abs(ele.x2 - ele.x1) / 2;
+      const radiusY = Math.abs(ele.y2 - ele.y1) / 2;
+        ctx.current.beginPath()
+        ctx.current.strokeStyle = ele.stroke
+        ctx.current.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        if (ele.filltype === "none") {
+          ctx.current.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+        } else {
+          ctx.current.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+          ctx.current.fillStyle = ele.stroke
+          ctx.current.fill()
+        }
+        ctx.current.stroke()
+
       } else if (ele.element === "arrow") {
         // Draw the arrow line
         roughCanvas.line(ele.x1, ele.y1, ele.x2, ele.y2, {
@@ -336,16 +325,16 @@ export const Canvas = ({
         prevElements.map((ele, index) =>
           index === elements.length - 1
             ? {
-                x1: ele.x1,
-                y1: ele.y1,
-                x2: offsetX,
-                y2: offsetY,
-                stroke: ele.stroke,
-                element: ele.element,
-                width: ele.width,
-                rough: ele.rough,
-                filltype:ele.filltype,
-              }
+              x1: ele.x1,
+              y1: ele.y1,
+              x2: offsetX,
+              y2: offsetY,
+              stroke: ele.stroke,
+              element: ele.element,
+              width: ele.width,
+              rough: ele.rough,
+              filltype: ele.filltype,
+            }
             : ele
         )
       );
@@ -354,15 +343,15 @@ export const Canvas = ({
         prevElements.map((ele, index) =>
           index === elements.length - 1
             ? {
-                x1: ele.x1,
-                y1: ele.y1,
-                x2: offsetX,
-                y2: offsetY,
-                stroke: ele.stroke,
-                element: ele.element,
-                width: ele.width,
-                rough: ele.rough,
-              }
+              x1: ele.x1,
+              y1: ele.y1,
+              x2: offsetX,
+              y2: offsetY,
+              stroke: ele.stroke,
+              element: ele.element,
+              width: ele.width,
+              rough: ele.rough,
+            }
             : ele
         )
       );
@@ -371,14 +360,14 @@ export const Canvas = ({
         prevElements.map((ele, index) =>
           index === elements.length - 1
             ? {
-                x1: ele.x1,
-                y1: ele.y1,
-                path: [...ele.path, [offsetX, offsetY]],
-                stroke: ele.stroke,
-                element: ele.element,
-                width: ele.width,
-                rough: ele.rough,
-              }
+              x1: ele.x1,
+              y1: ele.y1,
+              path: [...ele.path, [offsetX, offsetY]],
+              stroke: ele.stroke,
+              element: ele.element,
+              width: ele.width,
+              rough: ele.rough,
+            }
             : ele
         )
       );
@@ -387,18 +376,18 @@ export const Canvas = ({
         prevElements.map((ele, index) =>
           index === elements.length - 1
             ? {
-                x1: ele.x1,
-                y1: ele.y1,
-                x2: offsetX,
-                y2: offsetY,
-                owidth: Math.abs(offsetX - ele.x1),
-                oheight: Math.abs(offsetY - ele.y1),
-                stroke: ele.stroke,
-                element: ele.element,
-                width: ele.width,
-                rough: ele.rough,
-                filltype:ele.filltype,
-              }
+              x1: ele.x1,
+              y1: ele.y1,
+              x2: offsetX,
+              y2: offsetY,
+              owidth: Math.abs(offsetX - ele.x1),
+              oheight: Math.abs(offsetY - ele.y1),
+              stroke: ele.stroke,
+              element: ele.element,
+              width: ele.width,
+              rough: ele.rough,
+              filltype: ele.filltype,
+            }
             : ele
         )
       );
@@ -407,15 +396,15 @@ export const Canvas = ({
         prevElements.map((ele, index) =>
           index === elements.length - 1
             ? {
-                x1: ele.x1,
-                y1: ele.y1,
-                x2: offsetX,
-                y2: offsetY,
-                stroke: ele.stroke,
-                element: ele.element,
-                width: ele.width,
-                rough: ele.rough,
-              }
+              x1: ele.x1,
+              y1: ele.y1,
+              x2: offsetX,
+              y2: offsetY,
+              stroke: ele.stroke,
+              element: ele.element,
+              width: ele.width,
+              rough: ele.rough,
+            }
             : ele
         )
       );
@@ -450,20 +439,20 @@ export const Canvas = ({
             'url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMjBweCcgaGVpZ2h0PScyNnB4JyB0cmFuc2Zvcm0gPSAncm90YXRlKDgwKScgeG1sbnM9J2h0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnJyB2aWV3Qm94PScwIDAgNTEyIDUxMic+PHBhdGggZD0nTTQxMC4zIDIzMWwxMS4zLTExLjMtMzMuOS0zMy45LTYyLjEtNjIuMUwyOTEuNyA4OS44bC0xMS4zIDExLjMtMjIuNiAyMi42TDU4LjYgMzIyLjljLTEwLjQgMTAuNC0xOCAyMy4zLTIyLjIgMzcuNEwxIDQ4MC43Yy0yLjUgOC40LS4yIDE3LjUgNi4xIDIzLjdzMTUuMyA4LjUgMjMuNyA2LjFsMTIwLjMtMzUuNGMxNC4xLTQuMiAyNy0xMS44IDM3LjQtMjIuMkwzODcuNyAyNTMuNyA0MTAuMyAyMzF6TTE2MCAzOTkuNGwtOS4xIDIyLjdjLTQgMy4xLTguNSA1LjQtMTMuMyA2LjlMNTkuNCA0NTJsMjMtNzguMWMxLjQtNC45IDMuOC05LjQgNi45LTEzLjNsMjIuNy05LjF2MzJjMCA4LjggNy4yIDE2IDE2IDE2aDMyek0zNjIuNyAxOC43TDM0OC4zIDMzLjIgMzI1LjcgNTUuOCAzMTQuMyA2Ny4xbDMzLjkgMzMuOSA2Mi4xIDYyLjEgMzMuOSAzMy45IDExLjMtMTEuMyAyMi42LTIyLjYgMTQuNS0xNC41YzI1LTI1IDI1LTY1LjUgMC05MC41TDQ1My4zIDE4LjdjLTI1LTI1LTY1LjUtMjUtOTAuNSAwem0tNDcuNCAxNjhsLTE0NCAxNDRjLTYuMiA2LjItMTYuNCA2LjItMjIuNiAwcy02LjItMTYuNCAwLTIyLjZsMTQ0LTE0NGM2LjItNi4yIDE2LjQtNi4yIDIyLjYgMHM2LjIgMTYuNCAwIDIyLjZ6Jy8+PC9zdmc+"), auto',
         }}
       />
-      <textarea id="inputText" className="z-[1] absolute bg-transparent" style={{display:'none'}}/>
+      <textarea id="inputText" className="z-[1] absolute bg-transparent" style={{ display: 'none' }} />
     </>
   );
 };
 
 
-export  function downloadCanvasAsImage() {
+export function downloadCanvasAsImage() {
   var canvas = document.getElementById('canvas');
-  
+
   var downloadLink = document.createElement('a');
-  
+
   downloadLink.download = `${fileNum}`;
-  
+
   downloadLink.href = canvas.toDataURL('image/png');
-  
+
   downloadLink.click();
 }

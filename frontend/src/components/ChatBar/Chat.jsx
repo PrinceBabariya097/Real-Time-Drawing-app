@@ -25,8 +25,8 @@ export const Chat = ({ isMessage, setIsMessage, socket }) => {
     socket.on("messageResponse", (data) => {
       setChat((prev) => [...prev, data]);
     });
-  }, []);
-
+  }, [message]);
+  console.log(chat, "all chat in this site");
   return (
     <div className="h-screen w-72 items-center [transition:width_0.5s] bg-blue-950 z-[1]">
       <button

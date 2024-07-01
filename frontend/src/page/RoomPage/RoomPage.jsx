@@ -191,7 +191,15 @@ function RoomPage({
           />
         </div>
       )}
-      {isMessage && (
+      {!isMessage ? (
+        <div className="absolute right-2 hidden top-0 [transition:width_0.5s]">
+          <Chat
+            isMessage={isMessage}
+            setIsMessage={setIsMessage}
+            socket={socket}
+          />
+        </div>
+      ) : (
         <div className="absolute right-2 top-0 [transition:width_0.5s]">
           <Chat
             isMessage={isMessage}
