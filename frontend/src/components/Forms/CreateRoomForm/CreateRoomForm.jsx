@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { APPID } from "../../../../appid";
-import AgoraRTC from "agora-rtc-sdk-ng";
+
 
 const CreateRoomForm = ({ uuid,socket,setUser,userData }) => {
   const [name, setName] = useState("");
@@ -26,24 +25,7 @@ const CreateRoomForm = ({ uuid,socket,setUser,userData }) => {
       userData.current = roomData
   }
 
-  const token = null;
-  const rtcUid = uuid()
-  const appid = APPID
-  let audioTracks = {
-    localAudioTracks: null,
-    remoteAudioTracks: {}
-  }
-
-  let rtcClient 
-  let initRtc = async (roomID) => {
-    rtcClient = AgoraRTC.createClient({mode:'rtc', codec:'vp8'})
-
-    await rtcClient.join(appid, roomID, token, rtcUid)
-
-    audioTracks.localAudioTracks = await AgoraRTC.createMicrophoneAudioTrack()
-    rtcClient.publish(audioTracks.localAudioTracks)
-  }
-
+  
   useEffect(() => {
     socket.on("userLeftEvent", () => {
       audioTracks.localAudioTracks.stop()

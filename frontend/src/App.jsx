@@ -7,7 +7,7 @@ import { useEffect } from "react"
 import AgoraRTC from "agora-rtc-sdk-ng"
 
 
-const server = "http://localhost:5000"
+const server = import.meta.env.VITE_BACKEND_URL 
 const socket = io(server,{
   transports : ["websocket"],
   "forceNew" : true,
