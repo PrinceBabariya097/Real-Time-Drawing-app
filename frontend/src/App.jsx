@@ -8,6 +8,7 @@ import AgoraRTC from "agora-rtc-sdk-ng"
 
 
 const server = import.meta.env.VITE_BACKEND_URL 
+console.log(server);
 const socket = io(server,{
   transports : ["websocket"],
   "forceNew" : true,
