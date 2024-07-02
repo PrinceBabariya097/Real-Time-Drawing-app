@@ -5,7 +5,6 @@ import { useRef, useState } from "react"
 import io from "socket.io-client"
 import { useEffect } from "react"
 import AgoraRTC from "agora-rtc-sdk-ng"
-import { APPID } from "../appid.js"
 
 
 const server = "http://localhost:5000"
@@ -26,6 +25,7 @@ function App() {
     });
   }
 
+
   const [user, setUser] = useState(null)
   const [users, setUsers] = useState([])
   const userData = useRef()
@@ -35,7 +35,7 @@ function App() {
 
   const token = null;
   const rtcUid = uuid()
-  const appid = APPID
+  const appid = import.meta.env.VITE_APPID
   let roomID
   let audioTracks = {
     localAudioTrack: null,
@@ -57,7 +57,6 @@ function App() {
     const localVideoTrack = await AgoraRTC.createCameraVideoTrack()
     const newTrack = localVideoTrack.getMediaStreamTrack();
     // const newTrack = await navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(mediaStream => mediaStream.getVideoTracks()[0]);
-    console.log(newTrack, 'newTrack ----------------------------------------------------------------------------------------------');
 
     rtcClient.on("user-published", handleUserPublished)
 
